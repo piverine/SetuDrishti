@@ -1,10 +1,10 @@
-# Setu-Drishti 2.0 × OmniMed AI Suite
+# Setu-Drishti 2.0
 
 > **Live demo:** [setu-drishti-hpmu.vercel.app](https://setu-drishti-hpmu.vercel.app/)
 >
 > **Demo note:** The backend is hosted on Render. Please wait a few minutes for it to start or wake from its free-tier sleep before testing the dashboard; the first request may take longer than usual.
 
-**Setu-Drishti 2.0** is an advanced, fully-integrated ICU Command Center and AI-driven Clinical OS. It combines real-time patient telemetry monitoring with a cutting-edge suite of 6 artificial intelligence models (OmniMed) to assist medical personnel in triage, diagnosis, and workflow optimization.
+**Setu-Drishti 2.0** is an advanced, fully-integrated ICU Command Center and AI-driven Clinical OS. It combines real-time patient telemetry monitoring with artificial intelligence models to assist medical personnel in triage, diagnosis, and workflow optimization.
 
 ---
 
@@ -20,7 +20,7 @@
 - **AR Lens Bed Scanner:** Mobile AR camera — doctors scan bed QR codes for live holographic readouts.
 - **Family-Link GenAI Translator:** Converts raw ICU telemetry into family-friendly updates in English, Hindi, and Punjabi.
 
-### 2. OmniMed AI Subsystems
+### 2. AI Subsystems
 - **SentinelIQ:** Anomaly detection on patient vitals using XGBoost models.
 - **Nidana Vision:** CNN scanner for dermatological clustering and lesion diagnosis.
 - **PulseWatch:** Real-time anomaly drift visualization powered by IoT simulation.
@@ -33,45 +33,57 @@
 ## 🏗️ Project Structure
 
 ```
-Setu-Drishti/                      ← You are here
+Setu-Drishti/                      ← Repository root
 │
-├── setu_drishti_backend/          ← FastAPI backend + all AI models
-│   ├── main.py                    ← App entry point & all ICU endpoints
-│   ├── simulator.py               ← ICU patient data simulator (run separately)
+├── alarm.py                       ← Alarm processing demo
+├── alarm_fatigue_demo.py          ← Alarm fatigue demonstration
+├── dynamic_filter.py              ← Dynamic filtering demo
+├── failure.py                     ← Failure scenario demo
+├── presentation_demo.py           ← Presentation/demo runner
+├── sepsis_model_evaluation.py     ← Sepsis model evaluation script
+├── docker-compose.yml             ← Container orchestration configuration
+├── models/                         ← Saved model artifacts
+├── output/                         ← Generated evaluation reports
+│   └── model_evaluation/
+│       └── layman_report.md
+│
+├── setu_drishti_backend/          ← FastAPI backend and model services
+│   ├── main.py                    ← API entry point
+│   ├── database.py                ← Database configuration and access
+│   ├── simulator.py               ← ICU patient data simulator
 │   ├── requirements.txt           ← Python dependencies
-│   ├── start.sh                   ← Render cloud startup script
-│   ├── Dockerfile                 ← Docker container config
-│   ├── ml_models/                 ← Pre-trained model weights
-│   └── routers/
-│       ├── disease_classifier.py  ← POST /api/v1/disease/classify
-│       ├── trial_bridge.py        ← POST /api/v1/trials/match
-│       ├── security.py            ← POST /api/v1/security/audit
-│       ├── sync_layer.py          ← POST /api/v1/sync
-│       ├── voice_triage.py        ← POST /api/v1/voice/analyze_tone
-│       ├── population_pulse.py    ← GET  /api/v1/population/dashboard
-│       └── deterioration.py       ← POST /api/v1/deterioration/predict
+│   ├── start.sh                   ← Deployment startup script
+│   ├── Dockerfile                 ← Backend container configuration
+│   ├── ml_models/                 ← Runtime model files
+│   └── routers/                   ← Feature-specific API routers
 │
-├── setu_drishti_web/              ← React + Vite web dashboard
-│   ├── src/
-│   │   ├── main.jsx               ← React root
-│   │   ├── App.jsx                ← Routing & pages
-│   │   ├── pages/                 ← Dashboard, Analytics, Settings, Landing
-│   │   └── components/            ← Layout, shared UI
-│   └── package.json
+├── setu_drishti_web/              ← React + Vite web applications
+│   ├── src/                       ← Primary web app source
+│   │   ├── App.jsx                ← Application shell
+│   │   ├── pages/                 ← Web pages
+│   │   ├── components/            ← Shared components
+│   │   ├── services/              ← Frontend services
+│   │   └── styles/                ← Web application styles
+│   ├── public/                    ← Public web assets
+│   ├── frontend/                  ← Additional frontend workspace
+│   │   ├── src/                   ← Frontend source
+│   │   └── public/                ← Frontend public assets
+│   ├── package.json               ← Web dependencies and scripts
+│   ├── vite.config.js             ← Vite configuration
+│   └── Dockerfile                 ← Web container configuration
 │
 └── SetuDrishtiApp/                ← React Native (Expo) mobile app
-    ├── app/
-    │   ├── (tabs)/
-    │   │   ├── index.tsx          ← ICU Ward Dashboard
-    │   │   └── ar-lens.tsx        ← AR Bed Scanner
-    │   └── omnimed-district.tsx   ← District Health Map
-    ├── components/
-    │   ├── ToneScore.tsx          ← Voice triage component
-    │   └── TrialBridge.tsx        ← Trial matching component
-    ├── services/
-    │   ├── ModelRunner.ts         ← API service layer (IP configured here)
-    │   └── OfflineSync.ts         ← Offline data sync
-    └── package.json
+    ├── app/                       ← Expo Router screens and layouts
+    │   ├── (tabs)/                ← Tab-based mobile screens
+    │   ├── index.tsx              ← App entry screen
+    │   ├── modal.tsx              ← Modal screen
+    │   └── workflow screens       ← Doctor, nurse, patient, and district views
+    ├── components/                ← Reusable mobile components
+    ├── services/                  ← Model execution and offline sync
+    ├── constants/                 ← Shared app constants
+    ├── assets/                    ← Fonts, images, and static assets
+    ├── public/                    ← Public mobile web assets
+    └── package.json               ← Mobile dependencies and scripts
 ```
 
 ---
@@ -230,8 +242,6 @@ ipconfig
 | File | Variable |
 |------|----------|
 | `SetuDrishtiApp/app/(tabs)/index.tsx` | `API_BASE = "http://<YOUR_PC_IP>:8000/api/v1"` |
-| `SetuDrishtiApp/app/(tabs)/ar-lens.tsx` | `BACKEND_URL = "http://<YOUR_PC_IP>:8000"` |
-| `SetuDrishtiApp/app/omnimed-district.tsx` | `BACKEND_URL = "http://<YOUR_PC_IP>:8000"` |
 | `SetuDrishtiApp/services/ModelRunner.ts` | `BACKEND_URL = "http://<YOUR_PC_IP>:8000"` |
 | `SetuDrishtiApp/components/ToneScore.tsx` | `BACKEND_URL = "http://<YOUR_PC_IP>:8000"` |
 | `SetuDrishtiApp/components/TrialBridge.tsx` | `BACKEND_URL = "http://<YOUR_PC_IP>:8000"` |
@@ -241,8 +251,6 @@ ipconfig
 $newIP = "10.216.18.227"   # Replace with your actual IP
 $files = @(
     "SetuDrishtiApp\app\(tabs)\index.tsx",
-    "SetuDrishtiApp\app\(tabs)\ar-lens.tsx",
-    "SetuDrishtiApp\app\omnimed-district.tsx",
     "SetuDrishtiApp\services\ModelRunner.ts",
     "SetuDrishtiApp\components\ToneScore.tsx",
     "SetuDrishtiApp\components\TrialBridge.tsx"
@@ -313,4 +321,4 @@ Built with ❤️ by **Team Alien-X**.
 
 ---
 
-*© 2026 Setu-Drishti × OmniMed. All rights reserved.*
+*© 2026 Setu-Drishti. All rights reserved.*
