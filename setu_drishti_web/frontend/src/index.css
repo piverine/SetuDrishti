@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Sohne:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+
+  /* Glass morphism utility */
+  .glass {
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
+  }
+
+  /* Glow effect for important elements */
+  .glow-cyan {
+    @apply shadow-lg shadow-cyan-500/50;
+  }
+
+  .glow-red {
+    @apply shadow-lg shadow-red-500/50;
+  }
+
+  .glow-purple {
+    @apply shadow-lg shadow-purple-500/50;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Professional card styles */
+  .card-hospital {
+    @apply rounded-xl border backdrop-blur-sm transition-smooth;
+  }
+
+  .card-hospital.dark {
+    @apply bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700/50 hover:border-slate-600/80 hover:shadow-lg hover:shadow-slate-900/50;
+  }
+
+  .card-hospital.light {
+    @apply bg-gradient-to-br from-white/80 to-gray-50/80 border-gray-200/60 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-400/20;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg font-semibold tracking-wide uppercase transition-smooth shadow-lg;
+  }
+
+  .btn-primary.dark {
+    @apply bg-gradient-to-r from-cyan-600 to-cyan-500 text-white hover:from-cyan-500 hover:to-cyan-400 hover:shadow-cyan-500/50;
+  }
+
+  .btn-primary.light {
+    @apply bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-500 hover:to-blue-400;
+  }
+
+  .input-hospital {
+    @apply rounded-lg px-4 py-2 transition-smooth font-mono;
+  }
+
+  .input-hospital.dark {
+    @apply bg-slate-900/50 border border-slate-700 text-gray-100 placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/50;
+  }
+
+  .input-hospital.light {
+    @apply bg-white/60 border border-gray-300 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50;
+  }
+
+  .stat-card {
+    @apply p-4 rounded-lg border transition-smooth;
+  }
+
+  .stat-card.dark {
+    @apply bg-slate-900/40 border-slate-700/50;
+  }
+
+  .stat-card.light {
+    @apply bg-white/60 border-gray-200/60;
+  }
+}

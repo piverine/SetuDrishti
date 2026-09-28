@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediAssist AI - Healthcare Chatbot</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap');
+
+    :root {
+      --primary: #0A6EBD;
+      --primary-light: #E8F4FD;
+      --primary-glow: rgba(10, 110, 189, 0.15);
+      --accent: #00C9A7;
+      --accent-glow: rgba(0, 201, 167, 0.2);
+      --danger: #FF5B5B;
+      --warning: #FFB347;
+      --bg: #F0F4F8;
+      --surface: #FFFFFF;
+      --surface2: #F8FAFB;
+      --border: #E2E8F0;
+      --text: #1A202C;
+      --text-secondary: #4A5568;
+      --text-muted: #A0AEC0;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.14);
+      --radius: 16px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: transparent !important;
+      color: var(--text);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: .5;
+        transform: scale(1.4);
+      }
+    }
+
+    /* ── Floating Button ── */
+    #chat-toggle {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, #0A4F8C 100%);
+      box-shadow: 0 6px 28px rgba(10, 110, 189, 0.45);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      transition: transform .25s, box-shadow .25s;
+    }
+
+    #chat-toggle:hover {
+      transform: scale(1.1);
+      box-shadow: 0 10px 36px rgba(10, 110, 189, 0.55);
+    }
+
+    #chat-toggle svg {
+      width: 28px;
+      height: 28px;
+      fill: white;
+      transition: opacity .2s;
+    }
+
+    #chat-toggle .close-icon {
+      display: none;
+    }
+
+    #chat-toggle.open .chat-icon {
+      display: none;
+    }
+
+    #chat-toggle.open .close-icon {
+      display: block;
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 14px;
+      height: 14px;
+      background: var(--accent);
+      border-radius: 50%;
+      border: 2px solid white;
+      animation: pulse 2s infinite;
+    }
+
+    /* ── Chatbot Panel ── */
+    #chatbot {
+      position: fixed;
+      bottom: 104px;
+      right: 28px;
+      width: min(420px, calc(100vw - 32px));
+      height: min(680px, calc(100vh - 120px));
+      background: var(--surface);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(10, 110, 189, 0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 9997;
+      transform: scale(0.85) translateY(24px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .35s cubic-bezier(.34, 1.56, .64, 1), opacity .25s ease;
+      transform-origin: bottom right;
+    }
+
+    #chatbot.open {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Header ── */
+    .chat-header {
+      background: linear-gradient(135deg, var(--primary) 0%, #0A4F8C 100%);
+      padding: 18px 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .bot-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .chat-header-info {
+      flex: 1;
+    }
+
+    .chat-header-info h3 {
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-text {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .header-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      transition: background .2s;
+    }
+
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .header-btn.active {
+      background: var(--accent);
+    }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 11px 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2.5px solid transparent;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    /* ── Tab Content ── */
+    .tab-content {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      flex-direction: column;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* ── Chat Area ── */
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .msg {
+      display: flex;
+      gap: 8px;
+      animation: fadeUp .3s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg.user {
+      flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+
+    .msg.user .msg-avatar {
+      background: linear-gradient(135deg, var(--primary), #0A4F8C);
+    }
+
+    .msg-bubble {
+      max-width: 82%;
+      padding: 11px 14px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--text);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.user .msg-bubble {
+      background: linear-gradient(135deg, var(--primary) 0%, #0A4F8C 100%);
+      color: white;
+      border: none;
+      border-bottom-right-radius: 4px;
+      border-bottom-left-radius: 16px;
+    }
+
+    .msg-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .msg.user .msg-time {
+      text-align: right;
+    }
+
+    /* Quick replies */
+    .quick-replies {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 0 16px 10px;
+      flex-shrink: 0;
+    }
+
+    .qr-btn {
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1.5px solid rgba(10, 110, 189, 0.2);
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .qr-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Input bar */
+    .input-area {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      flex-shrink: 0;
+      background: var(--surface);
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      font-family: inherit;
+      font-size: 13.5px;
+      resize: none;
+      outline: none;
+      max-height: 100px;
+      min-height: 40px;
+      line-height: 1.5;
+      transition: border-color .2s;
+      background: var(--surface2);
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+    }
+
+    .input-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .send-btn {
+      background: var(--primary);
+      color: white;
+    }
+
+    .send-btn:hover {
+      background: #0A4F8C;
+      transform: scale(1.05);
+    }
+
+    .mic-btn {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .mic-btn:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .mic-btn.recording {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: white;
+      animation: pulse-btn 1s infinite;
+    }
+
+    @keyframes pulse-btn {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    /* ── Consultation / Voice Recording Tab ── */
+    .consult-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .consult-card {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    .consult-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Recording controls */
+    .record-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .record-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all .25s;
+    }
+
+    .record-start {
+      background: linear-gradient(135deg, #FF5B5B, #C62828);
+      color: white;
+    }
+
+    .record-start:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 16px rgba(255, 91, 91, 0.4);
+    }
+
+    .record-stop {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .record-stop:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .recording-indicator {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(255, 91, 91, 0.08);
+      border-radius: 10px;
+      border: 1.5px solid rgba(255, 91, 91, 0.2);
+    }
+
+    .recording-indicator.active {
+      display: flex;
+    }
+
+    .rec-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--danger);
+      border-radius: 50%;
+      animation: pulse 1s infinite;
+    }
+
+    .rec-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--danger);
+    }
+
+    .rec-timer {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .transcript-box {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      min-height: 80px;
+      max-height: 140px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* ── Registration Form Tab ── */
+    .form-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .form-row.full {
+      grid-template-columns: 1fr;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 9px 11px;
+      border-radius: 9px;
+      border: 1.5px solid var(--border);
+      font-family: inherit;
+      font-size: 13px;
+      background: var(--surface2);
+      transition: border-color .2s;
+      outline: none;
+      color: var(--text);
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .form-group textarea {
+      resize: none;
+      min-height: 60px;
+    }
+
+    .auto-filled {
+      border-color: var(--accent) !important;
+      background: rgba(0, 201, 167, 0.05) !important;
+    }
+
+    .form-actions {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 11px;
+      border-radius: 12px;
+      border: none;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .22s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0A4F8C;
+      transform: scale(1.02);
+    }
+
+    .btn-outline {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent), #009980);
+      color: white;
+    }
+
+    .btn-accent:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 16px rgba(0, 201, 167, 0.35);
+    }
+
+    /* ── Report Tab ── */
+    .report-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .report-header-card {
+      background: linear-gradient(135deg, var(--primary) 0%, #0A4F8C 100%);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      color: white;
+    }
+
+    .report-header-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 17px;
+      margin-bottom: 4px;
+    }
+
+    .report-header-card p {
+      font-size: 12px;
+      opacity: .75;
+    }
+
+    .report-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .report-meta-item {
+      font-size: 11px;
+      opacity: .85;
+    }
+
+    .report-meta-item strong {
+      display: block;
+      font-size: 14px;
+      opacity: 1;
+    }
+
+    .report-section {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .report-section-hdr {
+      padding: 10px 14px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .report-section-body {
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+
+    .diagnosis-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 2px;
+    }
+
+    .badge-warning {
+      background: rgba(255, 179, 71, 0.15);
+      color: #B07D00;
+      border: 1px solid rgba(255, 179, 71, 0.3);
+    }
+
+    .badge-info {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid rgba(10, 110, 189, 0.2);
+    }
+
+    .badge-ok {
+      background: rgba(0, 201, 167, 0.1);
+      color: #009980;
+      border: 1px solid rgba(0, 201, 167, 0.25);
+    }
+
+    .vitals-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .vital-card {
+      background: white;
+      border-radius: 9px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .vital-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+    }
+
+    .vital-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 2px 0;
+    }
+
+    .vital-unit {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .vital-status {
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    .vital-status.ok {
+      color: var(--accent);
+    }
+
+    .vital-status.warn {
+      color: var(--warning);
+    }
+
+    .vital-status.high {
+      color: var(--danger);
+    }
+
+    .med-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .med-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 10px;
+      background: white;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+    }
+
+    .med-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .med-info {
+      flex: 1;
+    }
+
+    .med-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .med-dose {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .report-footer {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    /* ── History Tab ── */
+    .history-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .history-item {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 13px;
+      cursor: pointer;
+      transition: all .2s;
+      border-left: 4px solid var(--border);
+    }
+
+    .history-item:hover {
+      border-color: var(--primary);
+      border-left-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .history-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .history-item-date {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .history-item-type {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+
+    .type-general {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .type-followup {
+      background: rgba(0, 201, 167, 0.1);
+      color: #009980;
+    }
+
+    .history-item-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .history-item-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ── Typing indicator ── */
+    .typing-bubble {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 12px 14px;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: typing .9s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes typing {
+
+      0%,
+      60%,
+      100% {
+        transform: translateY(0);
+        opacity: .4;
+      }
+
+      30% {
+        transform: translateY(-5px);
+        opacity: 1;
+      }
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 110px;
+      right: 28px;
+      background: #1A202C;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      transform: translateY(10px);
+      opacity: 0;
+      transition: all .25s;
+      z-index: 9999;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Scrollbars */
+    .consult-area::-webkit-scrollbar,
+    .form-area::-webkit-scrollbar,
+    .report-area::-webkit-scrollbar,
+    .history-area::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .consult-area::-webkit-scrollbar-thumb,
+    .form-area::-webkit-scrollbar-thumb,
+    .report-area::-webkit-scrollbar-thumb,
+    .history-area::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Demo Page Removed -->
+
+  <!-- Toast -->
+  <div id="toast">✅ <span id="toast-msg">Done</span></div>
+
+  <!-- Floating Toggle Button -->
+  <button id="chat-toggle" onclick="toggleChat()" title="Open MediAssist">
+    <div class="notif-dot"></div>
+    <svg class="chat-icon" viewBox="0 0 24 24">
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 10H6v-2h12v2zm0-3H6V7h12v2z" />
+    </svg>
+    <svg class="close-icon" viewBox="0 0 24 24">
+      <path d="M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4l5.6 5.6L5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z" />
+    </svg>
+  </button>
+
+  <!-- Chatbot Panel -->
+  <div id="chatbot">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="bot-avatar">🏥</div>
+      <div class="chat-header-info">
+        <h3>MediAssist AI</h3>
+        <div class="status-line">
+          <div class="status-dot"></div>
+          <span class="status-text">Online · Healthcare Assistant</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-btn" onclick="clearChat()" title="Clear Chat">🗑</button>
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('chat', this)">💬 Chat</button>
+      <button class="tab-btn" onclick="switchTab('consult', this)">🎙 Listen</button>
+      <button class="tab-btn" onclick="switchTab('form', this)">📋 Form</button>
+      <button class="tab-btn" onclick="switchTab('report', this)">📊 Report</button>
+      <button class="tab-btn" onclick="switchTab('history', this)">📁 History</button>
+    </div>
+
+    <!-- CHAT TAB -->
+    <div class="tab-content active" id="tab-chat">
+      <div class="messages" id="messages"></div>
+      <div class="quick-replies" id="quick-replies">
+        <button class="qr-btn" onclick="sendQuick('Evaluate patient qSOFA score')">⚡ Evaluate qSOFA</button>
+        <button class="qr-btn" onclick="sendQuick('Patient has fever and tachycardia')">🌡 Fever + Tachycardia</button>
+        <button class="qr-btn" onclick="sendQuick('What are the signs of sudden deterioration?')">📉 Deterioration
+          Signs</button>
+        <button class="qr-btn" onclick="sendQuick('Initiate Sepsis Protocol')">🚑 Sepsis Protocol</button>
+      </div>
+      <div class="input-area">
+        <textarea class="chat-input" id="chat-input" rows="1" placeholder="Type your symptoms…"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="input-btn mic-btn" id="chat-mic" onclick="toggleChatMic()" title="Voice input">🎤</button>
+        <button class="input-btn send-btn" onclick="sendMessage()" title="Send">➤</button>
+      </div>
+    </div>
+
+    <!-- CONSULT TAB -->
+    <div class="tab-content" id="tab-consult">
+      <div class="consult-area">
+        <div class="consult-card">
+          <div class="consult-card-title">🎙 Doctor-Patient Session</div>
+          <p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:12px;line-height:1.6;">
+            Start recording the consultation. AI will transcribe the conversation and automatically extract patient
+            info, symptoms, and diagnosis.
+          </p>
+          <div class="record-controls">
+            <button class="record-btn record-start" id="rec-start-btn" onclick="startRecording()">⏺ Start
+              Recording</button>
+            <button class="record-btn record-stop" id="rec-stop-btn" onclick="stopRecording()" disabled>⏹ Stop</button>
+          </div>
+          <div class="recording-indicator" id="rec-indicator" style="margin-top:10px;">
+            <div class="rec-dot"></div>
+            <span class="rec-label">RECORDING</span>
+            <span class="rec-timer" id="rec-timer">00:00</span>
+          </div>
+        </div>
+
+        <div class="consult-card">
+          <div class="consult-card-title">📝 Live Transcript</div>
+          <div class="transcript-box" id="transcript-box">Transcript will appear here as the conversation is recorded…
+          </div>
+        </div>
+
+        <div class="consult-card">
+          <div class="consult-card-title">🤖 AI Analysis</div>
+          <div id="ai-analysis" style="font-size:13px;color:var(--text-secondary);line-height:1.7;">
+            After recording, AI will extract: patient details, chief complaint, symptoms, duration, and suggested
+            actions.
+          </div>
+        </div>
+
+        <button class="btn btn-accent" onclick="processTranscript()" id="process-btn" style="display:none;">
+          ✨ Auto-Fill Form & Generate Report
+        </button>
+      </div>
+    </div>
+
+    <!-- FORM TAB -->
+    <div class="tab-content" id="tab-form">
+      <div class="form-area" id="form-area">
+        <div class="form-section-title">👤 Personal Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="f-fname" placeholder="John">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="f-lname" placeholder="Doe">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Age</label>
+            <input type="number" id="f-age" placeholder="28">
+          </div>
+          <div class="form-group">
+            <label>Gender</label>
+            <select id="f-gender">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="f-phone" placeholder="+91 98765 43210">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="f-email" placeholder="john@email.com">
+          </div>
+        </div>
+
+        <div class="form-section-title">🏥 Medical Information</div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Chief Complaint</label>
+            <textarea id="f-complaint" placeholder="Primary reason for visit…"></textarea>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Symptoms</label>
+            <textarea id="f-symptoms" placeholder="List all symptoms…"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Duration</label>
+            <input type="text" id="f-duration" placeholder="e.g. 3 days">
+          </div>
+          <div class="form-group">
+            <label>Severity (1–10)</label>
+            <input type="number" id="f-severity" min="1" max="10" placeholder="7">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Known Allergies</label>
+            <input type="text" id="f-allergies" placeholder="Penicillin, Dust…">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Current Medications</label>
+            <textarea id="f-medications" placeholder="List current medications…"></textarea>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label>Medical History</label>
+            <textarea id="f-history" placeholder="Past surgeries, conditions…"></textarea>
+          </div>
+        </div>
+
+        <div class="form-section-title">💉 Vitals</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Blood Pressure</label>
+            <input type="text" id="f-bp" placeholder="120/80 mmHg">
+          </div>
+          <div class="form-group">
+            <label>Temperature (°F)</label>
+            <input type="text" id="f-temp" placeholder="98.6">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Heart Rate (bpm)</label>
+            <input type="text" id="f-hr" placeholder="72">
+          </div>
+          <div class="form-group">
+            <label>SpO₂ (%)</label>
+            <input type="text" id="f-spo2" placeholder="98">
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="clearForm()">🗑 Clear</button>
+        <button class="btn btn-primary" onclick="savePatient()">💾 Save Patient</button>
+      </div>
+    </div>
+
+    <!-- REPORT TAB -->
+    <div class="tab-content" id="tab-report">
+      <div class="report-area" id="report-area">
+        <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+          <div style="font-size:40px;margin-bottom:12px;">📊</div>
+          <p style="font-size:14px;">No report generated yet.<br>Record a consultation or fill the form to generate a
+            patient report.</p>
+          <button class="btn btn-primary" style="margin-top:14px;display:inline-flex;"
+            onclick="generateSampleReport()">Generate Sample Report</button>
+        </div>
+      </div>
+      <div class="report-footer" id="report-footer" style="display:none;">
+        <button class="btn btn-outline" onclick="copyReport()">📋 Copy</button>
+        <button class="btn btn-primary" onclick="downloadReport()">⬇ Download</button>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-content" id="tab-history">
+      <div class="history-area" id="history-area">
+        <div style="text-align:center;padding:30px 20px;color:var(--text-muted);">
+          <div style="font-size:36px;margin-bottom:10px;">📁</div>
+          <p style="font-size:13px;">No patient history yet.<br>Save a patient to see records here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──
+    let chatOpen = false;
+    let isRecording = false;
+    let recognition = null;
+    let recTimer = null;
+    let recSeconds = 0;
+    let fullTranscript = '';
+    let patientDB = [];
+    let currentPatient = {};
+    let chatMicActive = false;
+    let chatRecognition = null;
+
+    // ── Gemini API Integration ──
+    const GEMINI_API_KEY = 'AIzaSyDLmDCpMjWAamjxT3QWngPccGRGP6cIIEs';
+
+    async function callClaude(messages, systemPrompt = '') {
+      // Map standard standard messaging syntax to Gemini's format
+      const formattedMessages = messages.map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }));
+
+      const body = { contents: formattedMessages };
+
+      if (systemPrompt) {
+        body.systemInstruction = {
+          parts: [{ text: systemPrompt }]
+        };
+      }
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        console.error('Gemini Error:', data.error);
+        return `⚠️ API Error: ${data.error.message || 'An AI server error occurred processing that request.'}`;
+      }
+
+      // Cleanly extract the generated text response
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
+    // ── Toggle Chat ──
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      document.getElementById('chatbot').classList.toggle('open', chatOpen);
+      document.getElementById('chat-toggle').classList.toggle('open', chatOpen);
+      if (chatOpen && document.getElementById('messages').children.length === 0) initChat();
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'CHAT_TOGGLE', isOpen: chatOpen }));
+      } else {
+        window.parent.postMessage({ type: 'CHAT_TOGGLE', isOpen: chatOpen }, '*');
+      }
+    }
+
+    // ── Tabs ──
+    function switchTab(name, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    // ── Chat ──
+    let chatHistory = [];
+
+    function initChat() {
+      addMessage('bot', `🚨 **MediAssist AI: Clinical Early Warning System**\n\nI am actively monitoring for Systemic Inflammatory Response Syndrome (SIRS) and Sudden Patient Deterioration.\n\nI can assist you with:\n• ⚡ Real-time Sepsis Risk Assessment (qSOFA, MEWS)\n• 🎙 Transcribing Clinical Observations & Vital Flags\n• 📋 Auto-extracting Deterioration Metrics\n• 📊 Generating Rapid-Response Escalation Reports\n\nPlease describe the patient's current symptoms, vitals, or request protocol guidance.`);
+    }
+
+    function addMessage(role, text, isTyping = false) {
+      const msgs = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role === 'user' ? 'user' : '');
+
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const avatarContent = role === 'user' ? '👤' : '🏥';
+
+      if (isTyping) {
+        div.id = 'typing-msg';
+        div.innerHTML = `
+      <div class="msg-avatar">${avatarContent}</div>
+      <div>
+        <div class="msg-bubble"><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>
+      </div>`;
+      } else {
+        const html = text
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/•/g, '•')
+          .replace(/\n/g, '<br>');
+        div.innerHTML = `
+      <div class="msg-avatar">${avatarContent}</div>
+      <div>
+        <div class="msg-bubble">${html}</div>
+        <div class="msg-time">${time}</div>
+      </div>`;
+      }
+
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+      return div;
+    }
+
+    function removeTyping() {
+      const t = document.getElementById('typing-msg');
+      if (t) t.remove();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage('user', text);
+      chatHistory.push({ role: 'user', content: text });
+      input.value = '';
+      input.style.height = 'auto';
+      document.getElementById('quick-replies').style.display = 'none';
+
+      addMessage('bot', '', true);
+
+      try {
+        const systemPrompt = `You are MediAssist AI, an advanced Clinical Knowledge Engine specialized in Sepsis and Sudden Patient Deterioration.
+You assist medical professionals and caregivers in analyzing symptoms, predicting systemic inflammatory response syndrome (SIRS), and identifying early warning signs of sepsis or septic shock.
+Important rules:
+- Hyper-focus on identifying early clinical deterioration (e.g., hypotension, tachycardia, tachypnea, altered mental status).
+- Proactively suggest evaluating qSOFA, SOFA, or MEWS scores if systemic infection symptoms are mentioned.
+- If symptoms indicate critical deterioration, immediately generate a High-Alert escalation warning.
+- Provide clear, actionable clinical advice aligned with modern Surviving Sepsis Campaign guidelines.
+- Be highly structured, concise, and professional. Use bullet points and bold text for critical vital thresholds.
+- Always append a medical disclaimer that you are an AI assistant and clinical judgment supersedes your output.
+- When a patient describes symptoms, actively offer to extract and save them to the clinical deterioration form.`;
+
+        const reply = await callClaude(chatHistory, systemPrompt);
+        chatHistory.push({ role: 'assistant', content: reply });
+
+        removeTyping();
+        addMessage('bot', reply);
+
+        // If symptom keywords detected, offer form fill
+        const symptomWords = ['fever', 'infection', 'confused', 'blood pressure', 'breathing', 'sepsis', 'shock', 'dizzy', 'heart rate', 'fatigue', 'delirium'];
+        if (symptomWords.some(w => text.toLowerCase().includes(w))) {
+          setTimeout(() => {
+            const qr = document.getElementById('quick-replies');
+            qr.style.display = 'flex';
+            qr.innerHTML = `
+          <button class="qr-btn" onclick="extractAndFill('${text.replace(/'/g, '')}')">📋 Save to Form</button>
+          <button class="qr-btn" onclick="sendQuick('What should I do?')">💊 What to do?</button>
+          <button class="qr-btn" onclick="sendQuick('Is this serious?')">⚠️ Is this serious?</button>
+        `;
+          }, 500);
+        }
+      } catch (e) {
+        removeTyping();
+        addMessage('bot', '⚠️ Sorry, I encountered an error. Please check your connection and try again.');
+      }
+    }
+
+    function sendQuick(text) {
+      document.getElementById('chat-input').value = text;
+      sendMessage();
+    }
+
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
+    function clearChat() {
+      document.getElementById('messages').innerHTML = '';
+      chatHistory = [];
+      initChat();
+      document.getElementById('quick-replies').style.display = 'flex';
+      document.getElementById('quick-replies').innerHTML = `
+    <button class="qr-btn" onclick="sendQuick('Evaluate patient qSOFA score')">⚡ Evaluate qSOFA</button>
+    <button class="qr-btn" onclick="sendQuick('Patient has fever and tachycardia')">🌡 Fever + Tachycardia</button>
+    <button class="qr-btn" onclick="sendQuick('What are the signs of sudden deterioration?')">📉 Deterioration Signs</button>
+    <button class="qr-btn" onclick="sendQuick('Initiate Sepsis Protocol')">🚑 Sepsis Protocol</button>
+  `;
+    }
+
+    // ── Chat Mic ──
+    function toggleChatMic() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast('Speech recognition not supported in this browser');
+        return;
+      }
+      if (chatMicActive) {
+        chatRecognition?.stop();
+        chatMicActive = false;
+        document.getElementById('chat-mic').classList.remove('recording');
+        return;
+      }
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      chatRecognition = new SR();
+      chatRecognition.continuous = false;
+      chatRecognition.interimResults = false;
+      chatRecognition.lang = 'en-IN';
+      chatRecognition.onresult = e => {
+        document.getElementById('chat-input').value = e.results[0][0].transcript;
+        chatMicActive = false;
+        document.getElementById('chat-mic').classList.remove('recording');
+      };
+      chatRecognition.onerror = () => {
+        chatMicActive = false;
+        document.getElementById('chat-mic').classList.remove('recording');
+      };
+      chatRecognition.onend = () => {
+        chatMicActive = false;
+        document.getElementById('chat-mic').classList.remove('recording');
+      };
+      chatRecognition.start();
+      chatMicActive = true;
+      document.getElementById('chat-mic').classList.add('recording');
+    }
+
+    // ── Recording / Transcription ──
+    function startRecording() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        // Simulate for demo
+        simulateRecording();
+        return;
+      }
+
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-IN';
+
+      fullTranscript = '';
+      document.getElementById('transcript-box').textContent = '';
+
+      recognition.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) fullTranscript += e.results[i][0].transcript + ' ';
+          else interim = e.results[i][0].transcript;
+        }
+        document.getElementById('transcript-box').textContent = fullTranscript + interim;
+      };
+
+      recognition.start();
+      beginRecordingUI();
+    }
+
+    function simulateRecording() {
+      // Demo simulation when Speech API unavailable
+      fullTranscript = '';
+      beginRecordingUI();
+      const sampleLines = [
+        'Doctor: Good morning, what brings you in today?',
+        'Patient: I have been having a severe headache for the past 3 days.',
+        'Doctor: I see. On a scale of 1 to 10, how severe is the pain?',
+        'Patient: Around 7. It is mostly on the right side of my head.',
+        'Doctor: Are you experiencing any nausea, fever, or sensitivity to light?',
+        'Patient: Yes, I have mild nausea and sensitivity to light. No fever though.',
+        'Doctor: Any history of migraines in your family?',
+        'Patient: Yes, my mother has migraines.',
+        'Doctor: What medications are you currently taking?',
+        'Patient: I am taking Paracetamol 500mg but it is not helping much.',
+        'Doctor: Alright. I am going to diagnose this as a migraine episode.',
+        'Doctor: I will prescribe Sumatriptan 50mg and recommend rest in a dark room.'
+      ];
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < sampleLines.length && isRecording) {
+          fullTranscript += sampleLines[i] + '\n';
+          document.getElementById('transcript-box').textContent = fullTranscript;
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 1200);
+    }
+
+    function beginRecordingUI() {
+      isRecording = true;
+      document.getElementById('rec-start-btn').disabled = true;
+      document.getElementById('rec-stop-btn').disabled = false;
+      document.getElementById('rec-indicator').classList.add('active');
+      document.getElementById('process-btn').style.display = 'none';
+
+      recSeconds = 0;
+      recTimer = setInterval(() => {
+        recSeconds++;
+        const m = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+        const s = String(recSeconds % 60).padStart(2, '0');
+        document.getElementById('rec-timer').textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function stopRecording() {
+      isRecording = false;
+      recognition?.stop();
+      clearInterval(recTimer);
+      document.getElementById('rec-start-btn').disabled = false;
+      document.getElementById('rec-stop-btn').disabled = true;
+      document.getElementById('rec-indicator').classList.remove('active');
+
+      if (fullTranscript.trim()) {
+        document.getElementById('process-btn').style.display = 'flex';
+        document.getElementById('ai-analysis').innerHTML = '<em style="color:var(--text-muted)">Click "Auto-Fill Form & Generate Report" to analyze the transcript.</em>';
+      }
+    }
+
+    async function processTranscript() {
+      if (!fullTranscript.trim()) { showToast('No transcript to process'); return; }
+
+      document.getElementById('ai-analysis').innerHTML = '<div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+
+      try {
+        const prompt = `Analyze this doctor-patient consultation transcript and extract structured information. 
+Return ONLY a JSON object with these exact keys:
+{
+  "patientName": "",
+  "age": "",
+  "gender": "",
+  "chiefComplaint": "",
+  "symptoms": "",
+  "duration": "",
+  "severity": "",
+  "allergies": "",
+  "currentMedications": "",
+  "medicalHistory": "",
+  "bloodPressure": "",
+  "temperature": "",
+  "heartRate": "",
+  "spo2": "",
+  "diagnosis": "",
+  "prescribedMeds": "",
+  "recommendations": "",
+  "followUp": ""
+}
+
+Transcript:
+${fullTranscript}`;
+
+        const response = await callClaude([{ role: 'user', content: prompt }]);
+
+        let extracted = {};
+        try {
+          const jsonMatch = response.match(/\{[\s\S]*\}/);
+          extracted = JSON.parse(jsonMatch ? jsonMatch[0] : response);
+        } catch {
+          extracted = { chiefComplaint: 'See transcript', symptoms: fullTranscript.slice(0, 200) };
+        }
+
+        // Auto-fill form
+        fillFormFromExtraction(extracted);
+
+        // Show analysis
+        const analysisHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${extracted.diagnosis ? `<div><strong>🔍 Diagnosis:</strong> <span class="diagnosis-badge badge-warning">${extracted.diagnosis}</span></div>` : ''}
+        ${extracted.chiefComplaint ? `<div><strong>🤒 Chief Complaint:</strong> ${extracted.chiefComplaint}</div>` : ''}
+        ${extracted.symptoms ? `<div><strong>📋 Symptoms:</strong> ${extracted.symptoms}</div>` : ''}
+        ${extracted.prescribedMeds ? `<div><strong>💊 Prescribed:</strong> ${extracted.prescribedMeds}</div>` : ''}
+        ${extracted.recommendations ? `<div><strong>✅ Recommendations:</strong> ${extracted.recommendations}</div>` : ''}
+      </div>`;
+        document.getElementById('ai-analysis').innerHTML = analysisHTML;
+
+        // Store for report
+        currentPatient = { ...currentPatient, ...extracted, timestamp: new Date().toISOString() };
+
+        showToast('✅ Form auto-filled & report ready!');
+        setTimeout(() => generateReport(extracted), 500);
+
+      } catch (e) {
+        document.getElementById('ai-analysis').innerHTML = '⚠️ Analysis failed. Please try again.';
+      }
+    }
+
+    function fillFormFromExtraction(data) {
+      const fillField = (id, value) => {
+        if (!value) return;
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = value;
+          el.classList.add('auto-filled');
+          setTimeout(() => el.classList.remove('auto-filled'), 3000);
+        }
+      };
+
+      const nameParts = (data.patientName || '').split(' ');
+      fillField('f-fname', nameParts[0] || '');
+      fillField('f-lname', nameParts.slice(1).join(' ') || '');
+      fillField('f-age', data.age);
+      fillField('f-complaint', data.chiefComplaint);
+      fillField('f-symptoms', data.symptoms);
+      fillField('f-duration', data.duration);
+      fillField('f-severity', data.severity);
+      fillField('f-allergies', data.allergies);
+      fillField('f-medications', data.currentMedications);
+      fillField('f-history', data.medicalHistory);
+      fillField('f-bp', data.bloodPressure);
+      fillField('f-temp', data.temperature);
+      fillField('f-hr', data.heartRate);
+      fillField('f-spo2', data.spo2);
+
+      if (data.gender) {
+        const sel = document.getElementById('f-gender');
+        if (sel) { sel.value = data.gender; sel.classList.add('auto-filled'); }
+      }
+    }
+
+    // ── Extract from Chat ──
+    async function extractAndFill(symptomText) {
+      showToast('Extracting symptoms…');
+      try {
+        const response = await callClaude([{
+          role: 'user',
+          content: `Extract medical information from: "${symptomText}". Return JSON: {"chiefComplaint":"","symptoms":"","severity":"","duration":""}`
+        }]);
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const data = JSON.parse(jsonMatch[0]);
+          fillFormFromExtraction(data);
+          showToast('✅ Symptoms saved to form!');
+          const tabs = document.querySelectorAll('.tab-btn');
+          tabs.forEach((t, i) => { if (i === 2) { t.click(); } });
+        }
+      } catch { showToast('Could not extract. Please fill manually.'); }
+    }
+
+    // ── Form ──
+    function clearForm() {
+      document.querySelectorAll('#form-area input, #form-area select, #form-area textarea').forEach(el => {
+        el.value = '';
+        el.classList.remove('auto-filled');
+      });
+      showToast('Form cleared');
+    }
+
+    function savePatient() {
+      const patient = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        firstName: document.getElementById('f-fname').value || 'Unknown',
+        lastName: document.getElementById('f-lname').value || '',
+        age: document.getElementById('f-age').value,
+        gender: document.getElementById('f-gender').value,
+        phone: document.getElementById('f-phone').value,
+        email: document.getElementById('f-email').value,
+        complaint: document.getElementById('f-complaint').value,
+        symptoms: document.getElementById('f-symptoms').value,
+        duration: document.getElementById('f-duration').value,
+        severity: document.getElementById('f-severity').value,
+        allergies: document.getElementById('f-allergies').value,
+        medications: document.getElementById('f-medications').value,
+        history: document.getElementById('f-history').value,
+        bp: document.getElementById('f-bp').value,
+        temp: document.getElementById('f-temp').value,
+        hr: document.getElementById('f-hr').value,
+        spo2: document.getElementById('f-spo2').value,
+      };
+
+      patientDB.push(patient);
+      localStorage.setItem('mediassist_patients', JSON.stringify(patientDB));
+      currentPatient = patient;
+
+      renderHistory();
+      showToast('✅ Patient saved to database!');
+      generateReport(patient);
+    }
+
+    // ── History ──
+    function renderHistory() {
+      const area = document.getElementById('history-area');
+      if (patientDB.length === 0) {
+        area.innerHTML = '<div style="text-align:center;padding:30px 20px;color:var(--text-muted);"><div style="font-size:36px;margin-bottom:10px;">📁</div><p style="font-size:13px;">No patient history yet.</p></div>';
+        return;
+      }
+      area.innerHTML = patientDB.slice().reverse().map(p => `
+    <div class="history-item" onclick="loadPatient(${p.id})">
+      <div class="history-item-top">
+        <span class="history-item-date">${new Date(p.timestamp).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        <span class="history-item-type type-general">General</span>
+      </div>
+      <div class="history-item-title">${p.firstName} ${p.lastName}${p.age ? ', ' + p.age + ' yrs' : ''}</div>
+      <div class="history-item-sub">${p.complaint || 'No complaint recorded'}</div>
+    </div>
+  `).join('');
+    }
+
+    function loadPatient(id) {
+      const p = patientDB.find(pt => pt.id === id);
+      if (!p) return;
+      document.getElementById('f-fname').value = p.firstName;
+      document.getElementById('f-lname').value = p.lastName;
+      document.getElementById('f-age').value = p.age;
+      document.getElementById('f-gender').value = p.gender;
+      document.getElementById('f-phone').value = p.phone;
+      document.getElementById('f-email').value = p.email;
+      document.getElementById('f-complaint').value = p.complaint;
+      document.getElementById('f-symptoms').value = p.symptoms;
+      document.getElementById('f-duration').value = p.duration;
+      document.getElementById('f-severity').value = p.severity;
+      document.getElementById('f-allergies').value = p.allergies;
+      document.getElementById('f-medications').value = p.medications;
+      document.getElementById('f-history').value = p.history;
+      document.getElementById('f-bp').value = p.bp;
+      document.getElementById('f-temp').value = p.temp;
+      document.getElementById('f-hr').value = p.hr;
+      document.getElementById('f-spo2').value = p.spo2;
+
+      document.querySelectorAll('.tab-btn')[2].click();
+      showToast('Patient record loaded');
+    }
+
+    // ── Report Generation ──
+    async function generateReport(data) {
+      const area = document.getElementById('report-area');
+      area.innerHTML = `<div style="padding:30px;text-align:center;color:var(--text-muted);">
+    <div class="typing-bubble" style="justify-content:center;"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>
+    <p style="margin-top:10px;font-size:13px;">Generating health report…</p>
+  </div>`;
+
+      const patientName = data.patientName || `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Patient';
+      const now = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+
+      try {
+        const prompt = `Generate a concise medical report summary for this patient data: ${JSON.stringify(data)}.
+Return JSON with: {"summary":"2-3 sentence summary","keyFindings":["finding1","finding2","finding3"],"riskLevel":"Low/Medium/High","recommendations":["rec1","rec2","rec3"],"followUpDays":7}`;
+
+        const response = await callClaude([{ role: 'user', content: prompt }]);
+        let aiReport = {};
+        try {
+          const jsonMatch = response.match(/\{[\s\S]*\}/);
+          aiReport = JSON.parse(jsonMatch ? jsonMatch[0] : '{}');
+        } catch { aiReport = { summary: 'Report generated from patient data.', keyFindings: [], recommendations: [] }; }
+
+        const bp = data.bp || data.bloodPressure || '120/80';
+        const temp = data.temp || data.temperature || '98.6';
+        const hr = data.hr || data.heartRate || '72';
+        const spo2 = data.spo2 || '98';
+
+        const bpHigh = bp && parseInt(bp) > 140;
+        const tempHigh = parseFloat(temp) > 99.5;
+        const hrHigh = parseInt(hr) > 100;
+        const spo2Low = parseInt(spo2) < 95;
+
+        const riskColor = { Low: 'badge-ok', Medium: 'badge-warning', High: 'badge-danger' };
+
+        area.innerHTML = `
+      <div class="report-header-card">
+        <h4>Health Report</h4>
+        <p>Generated on ${now} · MediAssist AI</p>
+        <div class="report-meta">
+          <div class="report-meta-item"><strong>${patientName}</strong>Patient</div>
+          ${data.age ? `<div class="report-meta-item"><strong>${data.age} yrs</strong>Age</div>` : ''}
+          ${data.gender ? `<div class="report-meta-item"><strong>${data.gender}</strong>Gender</div>` : ''}
+          <div class="report-meta-item"><strong><span class="diagnosis-badge ${riskColor[aiReport.riskLevel] || 'badge-info'}" style="font-size:11px;padding:2px 8px;">${aiReport.riskLevel || 'Low'}</span></strong>Risk</div>
+        </div>
+      </div>
+
+      ${data.complaint || data.chiefComplaint ? `
+      <div class="report-section">
+        <div class="report-section-hdr">🤒 Chief Complaint</div>
+        <div class="report-section-body">${data.complaint || data.chiefComplaint}</div>
+      </div>` : ''}
+
+      ${data.symptoms ? `
+      <div class="report-section">
+        <div class="report-section-hdr">📋 Symptoms</div>
+        <div class="report-section-body">${data.symptoms}</div>
+      </div>` : ''}
+
+      ${aiReport.summary ? `
+      <div class="report-section">
+        <div class="report-section-hdr">🤖 AI Clinical Summary</div>
+        <div class="report-section-body">${aiReport.summary}</div>
+      </div>` : ''}
+
+      <div class="report-section">
+        <div class="report-section-hdr">💗 Vitals</div>
+        <div class="report-section-body">
+          <div class="vitals-grid">
+            <div class="vital-card">
+              <div class="vital-label">Blood Pressure</div>
+              <div class="vital-value" style="font-size:16px;">${bp}</div>
+              <div class="vital-unit">mmHg</div>
+              <div class="vital-status ${bpHigh ? 'high' : 'ok'}">${bpHigh ? '⚠ High' : '✓ Normal'}</div>
+            </div>
+            <div class="vital-card">
+              <div class="vital-label">Temperature</div>
+              <div class="vital-value">${temp}</div>
+              <div class="vital-unit">°F</div>
+              <div class="vital-status ${tempHigh ? 'warn' : 'ok'}">${tempHigh ? '⚠ Elevated' : '✓ Normal'}</div>
+            </div>
+            <div class="vital-card">
+              <div class="vital-label">Heart Rate</div>
+              <div class="vital-value">${hr}</div>
+              <div class="vital-unit">bpm</div>
+              <div class="vital-status ${hrHigh ? 'warn' : 'ok'}">${hrHigh ? '⚠ High' : '✓ Normal'}</div>
+            </div>
+            <div class="vital-card">
+              <div class="vital-label">SpO₂</div>
+              <div class="vital-value">${spo2}</div>
+              <div class="vital-unit">%</div>
+              <div class="vital-status ${spo2Low ? 'high' : 'ok'}">${spo2Low ? '⚠ Low' : '✓ Normal'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      ${aiReport.keyFindings?.length ? `
+      <div class="report-section">
+        <div class="report-section-hdr">🔍 Key Findings</div>
+        <div class="report-section-body">
+          ${aiReport.keyFindings.map(f => `<span class="diagnosis-badge badge-info">• ${f}</span>`).join(' ')}
+        </div>
+      </div>` : ''}
+
+      ${aiReport.recommendations?.length ? `
+      <div class="report-section">
+        <div class="report-section-hdr">✅ Recommendations</div>
+        <div class="report-section-body">
+          <ul class="med-list">
+            ${aiReport.recommendations.map(r => `
+              <li class="med-item">
+                <span class="med-icon">📌</span>
+                <div class="med-info"><div class="med-name">${r}</div></div>
+              </li>`).join('')}
+          </ul>
+        </div>
+      </div>` : ''}
+
+      ${data.medications || data.currentMedications || data.prescribedMeds ? `
+      <div class="report-section">
+        <div class="report-section-hdr">💊 Medications</div>
+        <div class="report-section-body">${data.medications || data.currentMedications || data.prescribedMeds}</div>
+      </div>` : ''}
+
+      ${aiReport.followUpDays ? `
+      <div class="report-section">
+        <div class="report-section-hdr">📅 Follow-Up</div>
+        <div class="report-section-body">Recommended follow-up in <strong>${aiReport.followUpDays} days</strong>.</div>
+      </div>` : ''}
+
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;padding:8px;">
+        ⚠️ This report is AI-generated and for reference only. Always consult a licensed physician.
+      </div>
+    `;
+
+        document.getElementById('report-footer').style.display = 'flex';
+        showToast('📊 Report generated!');
+
+      } catch (e) {
+        area.innerHTML = '<div style="padding:20px;color:var(--danger);">Failed to generate report. Please try again.</div>';
+      }
+    }
+
+    async function generateSampleReport() {
+      const sampleData = {
+        patientName: 'Priya Sharma',
+        age: '32', gender: 'Female',
+        complaint: 'Severe headache for 3 days',
+        symptoms: 'Throbbing headache on right side, nausea, photosensitivity, mild dizziness',
+        duration: '3 days', severity: '7',
+        bp: '118/76', temp: '98.4', hr: '78', spo2: '99',
+        diagnosis: 'Migraine Episode',
+        medications: 'Sumatriptan 50mg, Metoclopramide 10mg',
+        allergies: 'None known'
+      };
+      await generateReport(sampleData);
+      document.querySelectorAll('.tab-btn')[3].click();
+    }
+
+    function copyReport() {
+      const area = document.getElementById('report-area');
+      navigator.clipboard.writeText(area.innerText).then(() => showToast('Report copied!'));
+    }
+
+    function downloadReport() {
+      const area = document.getElementById('report-area');
+      const blob = new Blob([area.innerText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'health_report.txt'; a.click();
+      showToast('Report downloaded!');
+    }
+
+    // ── Toast ──
+    function showToast(msg) {
+      document.getElementById('toast-msg').textContent = msg;
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ── Init ──
+    window.onload = () => {
+      try {
+        const saved = localStorage.getItem('mediassist_patients');
+        if (saved) { patientDB = JSON.parse(saved); renderHistory(); }
+      } catch { }
+    };
+  </script>
+</body>
+
+</html>

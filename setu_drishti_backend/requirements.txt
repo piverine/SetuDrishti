@@ -1,0 +1,57 @@
+# Setu-Drishti & OmniMed Unified Backend - Python Dependencies
+# Install: pip install -r requirements.txt
+
+# Web Framework
+fastapi
+uvicorn
+starlette
+python-multipart
+
+# API Validation & Serialization
+pydantic
+pydantic_core
+annotated-types
+orjson
+
+# Database (SQLite ORM)
+firebase-admin
+
+# Machine Learning (Setu-Drishti & SentinelIQ)
+xgboost
+shap
+scikit-learn
+scipy
+numpy
+pandas
+joblib
+
+# Deep Learning - Nidana Vision (Skin Triage CNN)
+# torch
+# torchvision
+# pillow
+
+# NLP - TrialBridge (Clinical Trial Semantic Matching)
+# sentence-transformers
+# transformers
+# tokenizers
+# huggingface_hub
+# safetensors
+
+# Notifications (Setu-Drishti Alerts)
+twilio
+
+# HTTP & External Networks
+requests
+httpx
+httpcore
+certifi
+urllib3
+
+# Utilities
+tqdm
+packaging
+filelock
+fsspec
+PyYAML
+python-dotenv
+google-generativeai==0.8.6

@@ -1,0 +1,46 @@
+# ── Python ────────────────────────────────────────────────────
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ── Large Data Files ─────────────────────────────────────────
+physionet_data/
+*.zip
+*.csv
+*.psv
+
+# ── Secrets (NEVER commit these) ─────────────────────────────
+.env
+.env.local
+firebase-credentials.json
+
+# ── Frontend Dependencies / Build ────────────────────────────
+node_modules/
+dist/
+.vite/
+
+# ── OS / IDE ─────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.db
+
+# ── JSON: ignore all EXCEPT ML model files ───────────────────
+*.json
+!sentinel_xgboost_v1.json
+!setu_drishti_backend/ml_models/deterioration_model.json
+!setu_drishti_backend/deterioration_model.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.*.json
+!app.json
+!expo-env.d.ts
+!eslint.config.js
+
+# ── Keep ML model weights ────────────────────────────────────
+!*.pkl

@@ -1,0 +1,25 @@
+# Environments
+venv/
+env/# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Massive Data Files (DO NOT UPLOAD TO GITHUB)
+physionet_data/
+*.zip
+*.csv
+*.psv
+
+# IDEs
+.vscode/
+.idea/
+
+# Explicitly Track Core Configs for Team
+!.env
+!.env.local
+!package.json
+!package-lock.json
+!requirements.txt
