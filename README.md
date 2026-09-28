@@ -2,7 +2,7 @@
 
 > **Live demo:** [setu-drishti-hpmu.vercel.app](https://setu-drishti-hpmu.vercel.app/)
 >
-> **Demo note:** The backend is hosted on Render. Please wait a few minutes for it to start or wake from its free-tier sleep before testing the dashboard; the first request may take longer than usual.
+> **IMPORTANT - Before opening the dashboard:** The backend is hosted on Render and may be asleep. Please wait a few minutes for it to start before testing the dashboard. During this wake-up period, the dashboard may not load or may appear unavailable; this is expected.
 
 **Setu-Drishti 2.0** is an advanced, fully-integrated ICU Command Center and AI-driven Clinical OS. It combines real-time patient telemetry monitoring with artificial intelligence models to assist medical personnel in triage, diagnosis, and workflow optimization.
 
